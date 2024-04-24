@@ -1,23 +1,64 @@
+import { addDoc, collection, query, orderBy, limit, getDocs } from "firebase/firestore";
 import React, { useState, useEffect } from "react";
 import { Button, Modal } from "react-bootstrap";
-import { collection, addDoc } from "firebase/firestore";
 import db from "../Config";
 
 const Form: React.FC = () => {
   const [openModal, setOpenModal] = useState(false);
   const [typeAntrian, setTypeAntrian] = useState<string>("");
-  const [noAntrian, setNoAntrian] = useState<string>("");
   const [noPlate, setNoPlate] = useState<string>("");
+  const [bookingCounter, setBookingCounter] = useState<number>(1);
+  const [nonBookingCounter, setNonBookingCounter] = useState<number>(1);
   const antrianCollections = collection(db, "antrian");
+
+  useEffect(() => {
+    const fetchLastAntrianNo = async () => {
+      if (typeAntrian === "booking") {
+        const q = query(antrianCollections, orderBy("noantrian", "desc"), limit(1));
+        const querySnapshot = await getDocs(q);
+        if (!querySnapshot.empty) {
+          const lastAntrian = querySnapshot.docs[0].data();
+          if (lastAntrian.typeantrian === "booking") {
+            setBookingCounter(parseInt(lastAntrian.noantrian.substring(1)) + 1);
+          } else {
+            setBookingCounter(1);
+          }
+        }
+      } else if (typeAntrian === "non-booking") {
+        const q = query(antrianCollections, orderBy("noantrian", "desc"), limit(1));
+        const querySnapshot = await getDocs(q);
+        if (!querySnapshot.empty) {
+          const lastAntrian = querySnapshot.docs[0].data();
+          if (lastAntrian.typeantrian === "non-booking") {
+            setNonBookingCounter(parseInt(lastAntrian.noantrian.substring(1)) + 1);
+          } else {
+            setNonBookingCounter(1);
+          }
+        }
+      }
+    };
+
+    fetchLastAntrianNo();
+  }, [typeAntrian]);
 
   const handleSubmit = async () => {
     try {
+      const antrianType = typeAntrian === "booking" ? "B" : "A";
+      const antrianNo = typeAntrian === "booking" ? bookingCounter : nonBookingCounter;
+      
       await addDoc(antrianCollections, {
         typeantrian: typeAntrian,
-        noantrian: noAntrian,
+        noantrian: `${antrianType}${antrianNo}`,
         noplate: noPlate,
         created_at: new Date(),
       });
+
+      if (typeAntrian === "booking") {
+        setBookingCounter(bookingCounter + 1);
+      } else {
+        setNonBookingCounter(nonBookingCounter + 1);
+      }
+
       onCloseModal();
       alert("Data Berhasil ditambahkan");
       window.location.reload();
@@ -30,7 +71,6 @@ const Form: React.FC = () => {
   const onCloseModal = () => {
     setOpenModal(false);
     setTypeAntrian("");
-    setNoAntrian("");
     setNoPlate("");
   };
 
@@ -40,7 +80,7 @@ const Form: React.FC = () => {
 
   return (
     <>
-      <Button onClick={() => setOpenModal(true)} >Add Antrian</Button>
+      <Button onClick={() => setOpenModal(true)}>Add Antrian</Button>
       <Modal show={openModal} onHide={onCloseModal} popup>
         <Modal.Header closeButton>
           <Modal.Title>Tambah Data Antrian</Modal.Title>
@@ -51,8 +91,8 @@ const Form: React.FC = () => {
             type="text"
             id="noantrian"
             className="input-group"
-            value={noAntrian}
-            onChange={(e) => setNoAntrian(e.target.value)}
+            value={typeAntrian === "booking" ? `B${bookingCounter}` : `A${nonBookingCounter}`}
+            readOnly // noAntrian diisi otomatis
           />
           <br />
           <label htmlFor="noplate">No Plat:</label>

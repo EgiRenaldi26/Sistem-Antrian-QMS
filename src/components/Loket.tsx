@@ -1,4 +1,5 @@
 import { Col, Container, Row } from "react-bootstrap";
+import next from "../assets/img/next.png";
 
 interface loketProps {
   loketID: string;
@@ -25,7 +26,7 @@ export const Loket = (props: loketProps) => {
                     onClick={props.handleCLick}
                     name={props.name}
                   >
-                    Next
+                    <img src={next} alt="next" width={20} />
                   </button>
                 </Col>
               </Row>
@@ -46,5 +47,5 @@ export const Loket = (props: loketProps) => {
         </Container>
       </Container>
     </>
-  )
+  );
 };

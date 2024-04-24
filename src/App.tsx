@@ -1,15 +1,9 @@
 import "firebase/compat/firestore";
-import {
-  addDoc,
-  collection,
-  deleteDoc,
-  doc,
-  getDocs,
-} from "firebase/firestore";
+import { collection, deleteDoc, doc, getDocs } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { Col, Row } from "react-bootstrap";
 import db from "./Config";
-import  Form  from "./components/Form";
+import Form from "./components/Form";
 import { List } from "./components/List";
 import { Loket } from "./components/Loket";
 import { Navbar } from "./components/Navbar";
@@ -69,17 +63,6 @@ function App() {
       setNonBookingData(nonBookingList);
     } catch (error) {
       console.log(error);
-    }
-  };
-
-  const handleAdd = async (newAntrian: Antrian) => {
-    try {
-      const docRef = await addDoc(collection(db, "antrian"), newAntrian);
-      console.log("Document written with ID: ", docRef.id);
-      // Setelah menambahkan data, panggil fetchData untuk memperbarui state
-      fetchData();
-    } catch (error) {
-      console.error("Error adding document: ", error);
     }
   };
 
